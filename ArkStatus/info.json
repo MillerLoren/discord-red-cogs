@@ -1,0 +1,21 @@
+{
+    "author": [
+      "MillerLoren"
+    ],
+    "description": "Monitor ARK: Survival Ascended servers and display live info using GameDig protocol.",
+    "install_msg": "Thanks for installing ArkStatus! Use `[p]arkstatus add` to begin tracking your ARK servers.",
+    "short": "ARK server status monitor",
+    "requirements": [],
+    "tags": [
+      "ark",
+      "servers",
+      "monitoring",
+      "games",
+      "gamedig"
+    ],
+    "type": "COG",
+    "hidden": false,
+    "disabled": false,
+    "end_user_data_statement": "This cog stores ARK server IPs and ports for the purpose of monitoring their status."
+  }
+  
