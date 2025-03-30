@@ -33,7 +33,7 @@ class ASAQuery:
     @staticmethod
     async def query(host: str, port: int, timeout: int = 5) -> dict:
         if not ASAQuery._access_token:
-            await ASAQuery.pre_query()
+            await ASAQuery.pre_query(ASAQuery)
 
         host, port = str(ASAQuery.kv["host"]), int(str(ASAQuery.kv["port"]))
         eos = opengsq.EOS(
