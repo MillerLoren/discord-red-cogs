@@ -1,7 +1,7 @@
 # arkstatus.py
 import discord
+from discord.ext import tasks
 from redbot.core import commands, Config
-from redbot.core.utils import tasks
 import asyncio
 from .gamedig.asa import ASAQuery
 from .gamedig.styles import default_style
@@ -11,7 +11,6 @@ class ArkStatus(commands.Cog):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1234567890, force_registration=True)
         self.config.register_global(servers={}, interval=5)
-        self.status_loop.change_interval(minutes=5)
         self.status_loop.start()
 
     def cog_unload(self):
