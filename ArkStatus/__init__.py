@@ -1,4 +1,6 @@
 # gamedig/__init__.py
 # This file marks the gamedig directory as a Python package.
+from .arkstatus import ArkStatus
 
-__all__ = ["asa", "protocol"]
+async def setup(bot):
+    await bot.add_cog(ArkStatus(bot))
