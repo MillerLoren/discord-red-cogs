@@ -35,7 +35,6 @@ class ASAQuery:
         if not ASAQuery._access_token:
             await ASAQuery.pre_query(ASAQuery)
 
-        host, port = str(ASAQuery.kv["host"]), int(str(ASAQuery.kv["port"]))
         eos = opengsq.EOS(
             host, port, ASAQuery._deployment_id, ASAQuery._access_token, timeout
         )
