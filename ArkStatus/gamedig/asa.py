@@ -31,7 +31,7 @@ class ASAQuery:
             external_auth_token=self._external_auth_token,
         )
     @staticmethod
-    async def query(ip: str, port: int, timeout: int = 5) -> dict:
+    async def query(self, ip: str, port: int, timeout: int = 5) -> dict:
         if not ASAQuery._access_token:
             await self.pre_query()
 
