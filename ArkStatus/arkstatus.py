@@ -1,6 +1,7 @@
 # arkstatus.py
 import discord
-from redbot.core import commands, Config, tasks
+from redbot.core import commands, Config
+from redbot.core.utils import tasks
 import asyncio
 from .gamedig.asa import ASAQuery
 from .gamedig.styles import default_style
