@@ -1,6 +1,6 @@
 # gamedig/asa.py
 import time
-from opengsq import Source
+import opengsq
 import asyncio
 
 class ASAQuery:
@@ -32,12 +32,12 @@ class ASAQuery:
         )
     @staticmethod
     async def query(self):
-        if not ASA._access_token:
+        if not ASAQuery._access_token:
             await self.pre_query()
 
         host, port = str(self.kv["host"]), int(str(self.kv["port"]))
         eos = opengsq.EOS(
-            host, port, self._deployment_id, ASA._access_token, self.timeout
+            host, port, self._deployment_id, ASAQuery._access_token, self.timeout
         )
         start = time.time()
         info = await eos.get_info()
