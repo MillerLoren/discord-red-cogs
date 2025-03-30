@@ -10,7 +10,7 @@ class ArkStatus(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = Config.get_conf(self, identifier=1234567890, force_registration=True)
-        self.config.register_global(servers={}, interval=5)
+        self.config.register_global(servers={}, interval=5, channel=None, messages={})
         self.status_loop.start()
 
     def cog_unload(self):
@@ -22,19 +22,38 @@ class ArkStatus(commands.Cog):
         self.status_loop.change_interval(minutes=interval)
 
         servers = await self.config.servers()
-        cached_servers = dict(servers)  # Cache server data to avoid multiple reads
+        cached_servers = dict(servers)
+        channel_id = await self.config.channel()
+        message_ids = await self.config.messages()
+
+        if not channel_id:
+            return
+
+        channel = self.bot.get_channel(channel_id)
+        if not isinstance(channel, discord.TextChannel) or not channel.permissions_for(channel.guild.me).send_messages:
+            return
 
         for key, data in cached_servers.items():
             ip, port = data["ip"], data["port"]
             try:
                 result = await ASAQuery.query(ip, port)
                 embed = default_style(result)
-                for channel in self.bot.get_all_channels():
-                    if isinstance(channel, discord.TextChannel) and channel.permissions_for(channel.guild.me).send_messages:
-                        await channel.send(embed=embed)
-                        break  # Send to first eligible channel only
+
+                msg_id = message_ids.get(key)
+                if msg_id:
+                    try:
+                        msg = await channel.fetch_message(msg_id)
+                        await msg.edit(embed=embed)
+                        continue
+                    except discord.NotFound:
+                        pass  # Message was deleted
+
+                new_msg = await channel.send(embed=embed)
+                message_ids[key] = new_msg.id
             except Exception as e:
                 print(f"Failed to query {ip}:{port} - {e}")
+
+        await self.config.messages.set(message_ids)
 
     @commands.group()
     async def arkstatus(self, ctx):
@@ -51,9 +70,13 @@ class ArkStatus(commands.Cog):
     @arkstatus.command()
     async def remove(self, ctx, name: str):
         servers = await self.config.servers()
+        message_ids = await self.config.messages()
         if name in servers:
             del servers[name]
+            if name in message_ids:
+                del message_ids[name]
             await self.config.servers.set(servers)
+            await self.config.messages.set(message_ids)
             await ctx.send(f"Removed server `{name}`.")
         else:
             await ctx.send("Server not found.")
@@ -80,3 +103,9 @@ class ArkStatus(commands.Cog):
         await self.config.interval.set(minutes)
         self.status_loop.change_interval(minutes=minutes)
         await ctx.send(f"Polling interval set to {minutes} minute(s).")
+
+    @arkstatus.command()
+    async def setchannel(self, ctx, channel: discord.TextChannel):
+        """Set the channel for status messages."""
+        await self.config.channel.set(channel.id)
+        await ctx.send(f"Status messages will now be sent to {channel.mention}.")
