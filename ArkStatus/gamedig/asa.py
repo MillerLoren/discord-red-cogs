@@ -31,13 +31,13 @@ class ASAQuery:
             external_auth_token=self._external_auth_token,
         )
     @staticmethod
-    async def query(self, ip: str, port: int, timeout: int = 5) -> dict:
+    async def query(host: str, port: int, timeout: int = 5) -> dict:
         if not ASAQuery._access_token:
-            await self.pre_query()
+            await ASAQuery.pre_query()
 
-        host, port = str(self.kv["host"]), int(str(self.kv["port"]))
+        host, port = str(ASAQuery.kv["host"]), int(str(ASAQuery.kv["port"]))
         eos = opengsq.EOS(
-            host, port, self._deployment_id, ASAQuery._access_token, timeout
+            host, port, ASAQuery._deployment_id, ASAQuery._access_token, timeout
         )
         start = time.time()
         info = await eos.get_info()
