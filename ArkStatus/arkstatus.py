@@ -107,5 +107,5 @@ class ArkStatus(commands.Cog):
     @arkstatus.command()
     async def setchannel(self, ctx, channel: discord.TextChannel):
         """Set the channel for status messages."""
-        await self.config.channel().set(channel.id)
+        await self.config.set("channel", channel.id)
         await ctx.send(f"Status messages will now be sent to {channel.mention}.")
