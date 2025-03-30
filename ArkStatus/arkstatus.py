@@ -3,6 +3,7 @@ import discord
 from discord.ext import tasks
 from redbot.core import commands, Config
 import asyncio
+import socket
 from .gamedig.asa import ASAQuery
 from .gamedig.styles import default_style
 
@@ -36,6 +37,7 @@ class ArkStatus(commands.Cog):
         for key, data in cached_servers.items():
             ip, port = data["ip"], data["port"]
             try:
+                ip = socket.gethostbyname(ip)
                 result = await ASAQuery.query(ip, port)
                 embed = default_style(result)
 
@@ -46,7 +48,7 @@ class ArkStatus(commands.Cog):
                         await msg.edit(embed=embed)
                         continue
                     except discord.NotFound:
-                        pass  # Message was deleted
+                        pass
 
                 new_msg = await channel.send(embed=embed)
                 message_ids[key] = new_msg.id
@@ -62,10 +64,16 @@ class ArkStatus(commands.Cog):
 
     @arkstatus.command()
     async def add(self, ctx, name: str, ip: str, port: int):
+        try:
+            resolved_ip = socket.gethostbyname(ip)
+        except socket.gaierror:
+            await ctx.send(f"Could not resolve hostname: {ip}")
+            return
+
         servers = await self.config.servers()
-        servers[name] = {"ip": ip, "port": port}
+        servers[name] = {"ip": ip, "port": port}  # Store hostname or IP as provided
         await self.config.servers.set(servers)
-        await ctx.send(f"Added server `{name}` at {ip}:{port}.")
+        await ctx.send(f"Added server `{name}` at {ip}:{port} (resolved to {resolved_ip}).")
 
     @arkstatus.command()
     async def remove(self, ctx, name: str):
@@ -109,3 +117,14 @@ class ArkStatus(commands.Cog):
         """Set the channel for status messages."""
         await self.config.set_raw("channel", value=channel.id)
         await ctx.send(f"Status messages will now be sent to {channel.mention}.")
+
+    @arkstatus.command()
+    async def check(self, ctx, ip: str, port: int):
+        """Manually check the status of a server."""
+        try:
+            resolved_ip = socket.gethostbyname(ip)
+            result = await ASAQuery.query(resolved_ip, port)
+            embed = default_style(result)
+            await ctx.send(embed=embed)
+        except Exception as e:
+            await ctx.send(f"Failed to query `{ip}:{port}`: {e}")
